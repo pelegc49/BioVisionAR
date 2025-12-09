@@ -57,6 +57,7 @@ public class ColorBlindnessController : MonoBehaviour
     public ColorBlindMode currentMode = ColorBlindMode.Normal;
 
     // רמת החומרה עבור ה-Anomalies (בין 0 ל-1. 0.6 מדמה לקות משמעותית)
+    [SerializeField]
     private float anomalySeverity = 0.6f;
 
     void Start()
