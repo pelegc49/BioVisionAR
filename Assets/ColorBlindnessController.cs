@@ -82,6 +82,30 @@ public class ColorBlindnessController : MonoBehaviour
             filterMaterial.SetMatrix(MatrixPropID, selectedMatrix);
         }
     }
+
+    // פונקציה לכפתור "רגיל"
+    public void SetNormal()
+    {
+        SetMode(ColorBlindMode.Normal);
+    }
+
+    // פונקציה לכפתור "פרוטנופיה" (אדום)
+    public void SetProtanopia()
+    {
+        SetMode(ColorBlindMode.Protanopia);
+    }
+
+    // פונקציה לכפתור "דאוטרנופיה" (ירוק)
+    public void SetDeuteranopia()
+    {
+        SetMode(ColorBlindMode.Deuteranopia);
+    }
+
+    // פונקציה לכפתור "טריטנופיה" (כחול)
+    public void SetTritanopia()
+    {
+        SetMode(ColorBlindMode.Tritanopia);
+    }
     
     // פונקציה שתאפשר לך לבדוק דרך ה-Inspector בזמן אמת
     private void OnValidate()
