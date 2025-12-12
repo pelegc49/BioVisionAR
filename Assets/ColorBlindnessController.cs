@@ -6,10 +6,9 @@ public class ColorBlindnessController : MonoBehaviour
     public Material filterMaterial;
     private static readonly int MatrixPropID = Shader.PropertyToID("_ColorMatrix");
 
-    // --- הגדרות בסיס ---
+    // --- הגדרת המטריצות (המטרות הסופיות) ---
     private readonly Matrix4x4 normalVision = Matrix4x4.identity;
 
-    // --- עיוורון מלא (Opia) ---
     private readonly Matrix4x4 protanopia = new Matrix4x4( // אדום חסר
         new Vector4(0.567f, 0.558f, 0.0f, 0.0f),
         new Vector4(0.433f, 0.442f, 0.242f, 0.0f),
@@ -31,105 +30,96 @@ public class ColorBlindnessController : MonoBehaviour
         new Vector4(0.0f, 0.0f, 0.0f, 1.0f)
     );
 
-    // --- עיוורון מוחלט (Monochromacy) ---
-    // שימוש בנוסחת Luminance (בהירות) המקובלת: R*0.299 + G*0.587 + B*0.114
-    private readonly Matrix4x4 achromatopsia = new Matrix4x4(
+    private readonly Matrix4x4 achromatopsia = new Matrix4x4( // שחור לבן
         new Vector4(0.299f, 0.299f, 0.299f, 0.0f),
         new Vector4(0.587f, 0.587f, 0.587f, 0.0f),
         new Vector4(0.114f, 0.114f, 0.114f, 0.0f),
         new Vector4(0.0f, 0.0f, 0.0f, 1.0f)
     );
 
+    // --- המצבים המצומצמים ---
     public enum ColorBlindMode
     {
-        Normal,
-        Protanopia,     // אדום חסר
-        Protanomaly,    // אדום חלש
-        Deuteranopia,   // ירוק חסר
-        Deuteranomaly,  // ירוק חלש
-        Tritanopia,     // כחול חסר
-        Tritanomaly,    // כחול חלש
-        RodMonochromacy,  // עיוורון מוחלט (ראיית לילה/מקלות)
-        ConeMonochromacy  // עיוורון מוחלט (ראיית יום/מדוכים - נדיר מאוד)
+        Normal,            // רגיל (מתעלם מהסליידר)
+        Protanomaly,       // אדום (מושפע מהסליידר)
+        Deuteranomaly,     // ירוק (מושפע מהסליידר)
+        Tritanomaly,       // כחול (מושפע מהסליידר)
+        RodMonochromacy    // שחור לבן (מתעלם מהסליידר - תמיד מלא)
     }
 
-    [Header("Current Settings")]
+    [Header("Settings")]
     public ColorBlindMode currentMode = ColorBlindMode.Normal;
 
-    // רמת החומרה עבור ה-Anomalies (בין 0 ל-1. 0.6 מדמה לקות משמעותית)
-    [SerializeField]
-    private float anomalySeverity = 0.6f;
+    [Range(0f, 1f)] 
+    public float severity = 1.0f; // הערך הזה ישתנה על ידי הסליידר ב-UI
 
-    void Start()
+    void Update()
     {
-        SetNormal();
+        // חישוב המטריצה בכל פריים מאפשר תגובה חלקה להזזת הסליידר
+        UpdateShader();
     }
 
-    public void SetMode(ColorBlindMode mode)
+    void UpdateShader()
     {
-        currentMode = mode;
-        Matrix4x4 selectedMatrix = normalVision;
+        Matrix4x4 targetMatrix = normalVision;
+        float activeSeverity = severity; // משתנה מקומי לחישוב
 
-        switch (mode)
+        switch (currentMode)
         {
             case ColorBlindMode.Normal:
-                selectedMatrix = normalVision;
+                targetMatrix = normalVision;
+                activeSeverity = 0f; // במצב רגיל אין השפעה
                 break;
 
-            // --- סוגי האדום ---
-            case ColorBlindMode.Protanopia:
-                selectedMatrix = protanopia;
-                break;
             case ColorBlindMode.Protanomaly:
-                // ערבוב בין ראייה רגילה לעיוורון אדום
-                selectedMatrix = LerpMatrix(normalVision, protanopia, anomalySeverity);
+                targetMatrix = protanopia; 
+                // משתמשים ב-severity מהסליידר
                 break;
 
-            // --- סוגי הירוק ---
-            case ColorBlindMode.Deuteranopia:
-                selectedMatrix = deuteranopia;
-                break;
             case ColorBlindMode.Deuteranomaly:
-                selectedMatrix = LerpMatrix(normalVision, deuteranopia, anomalySeverity);
+                targetMatrix = deuteranopia;
+                // משתמשים ב-severity מהסליידר
                 break;
 
-            // --- סוגי הכחול ---
-            case ColorBlindMode.Tritanopia:
-                selectedMatrix = tritanopia;
-                break;
             case ColorBlindMode.Tritanomaly:
-                selectedMatrix = LerpMatrix(normalVision, tritanopia, anomalySeverity);
+                targetMatrix = tritanopia;
+                // משתמשים ב-severity מהסליידר
                 break;
 
-            // --- עיוורון מוחלט ---
             case ColorBlindMode.RodMonochromacy:
-            case ColorBlindMode.ConeMonochromacy:
-                // בסימולציה ויזואלית בסיסית, שניהם נראים כגווני אפור
-                selectedMatrix = achromatopsia; 
+                targetMatrix = achromatopsia;
+                activeSeverity = 1.0f; // במצב הזה תמיד 100% (מתעלם מהסליידר)
                 break;
         }
+
+        // כאן הקסם קורה: אינטרפולציה בין ראייה רגילה למטריצת היעד לפי העוצמה
+        Matrix4x4 finalMatrix = LerpMatrix(normalVision, targetMatrix, activeSeverity);
 
         if (filterMaterial != null)
         {
-            filterMaterial.SetMatrix(MatrixPropID, selectedMatrix);
+            filterMaterial.SetMatrix(MatrixPropID, finalMatrix);
         }
     }
 
-    // --- פונקציות עזר ל-UI (לחבר לכפתורים) ---
-    public void SetNormal() => SetMode(ColorBlindMode.Normal);
+    // --- פונקציות לחיבור לכפתורי ה-UI ---
     
-    public void SetProtanopia() => SetMode(ColorBlindMode.Protanopia);
-    public void SetProtanomaly() => SetMode(ColorBlindMode.Protanomaly);
+    public void SetNormal() => currentMode = ColorBlindMode.Normal;
     
-    public void SetDeuteranopia() => SetMode(ColorBlindMode.Deuteranopia);
-    public void SetDeuteranomaly() => SetMode(ColorBlindMode.Deuteranomaly);
+    public void SetProtanomaly() => currentMode = ColorBlindMode.Protanomaly;
     
-    public void SetTritanopia() => SetMode(ColorBlindMode.Tritanopia);
-    public void SetTritanomaly() => SetMode(ColorBlindMode.Tritanomaly);
+    public void SetDeuteranomaly() => currentMode = ColorBlindMode.Deuteranomaly;
+    
+    public void SetTritanomaly() => currentMode = ColorBlindMode.Tritanomaly;
+    
+    public void SetRodMonochromacy() => currentMode = ColorBlindMode.RodMonochromacy;
 
-    public void SetMonochromacy() => SetMode(ColorBlindMode.RodMonochromacy); // כפתור אחד לשחור-לבן
+    // פונקציה לחיבור ל-Slider (OnValueChanged)
+    public void SetSeverity(float value)
+    {
+        severity = value;
+    }
 
-    // --- פונקציית עזר לחישוב מתמטי ---
+    // --- מתמטיקה ---
     private Matrix4x4 LerpMatrix(Matrix4x4 a, Matrix4x4 b, float t)
     {
         Matrix4x4 result = new Matrix4x4();
@@ -138,10 +128,5 @@ public class ColorBlindnessController : MonoBehaviour
             result[i] = Mathf.Lerp(a[i], b[i], t);
         }
         return result;
-    }
-
-    private void OnValidate()
-    {
-        if(Application.isPlaying) SetMode(currentMode);
     }
 }
