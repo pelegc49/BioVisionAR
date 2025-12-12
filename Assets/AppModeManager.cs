@@ -46,10 +46,26 @@ public class AppModeManager : MonoBehaviour
     // --- כפתור 3: משחק אישיהרה ---
     public void ActivateIshihara()
     {
-        // מציג את המשחק, מסתיר את העין
-        eyeModelContainer.SetActive(false);
-        ishiharaGameContainer.SetActive(true);
+        // Toggle למצב משחק אישיהרה בלבד
+        bool isActive = ishiharaGameContainer.activeSelf;
 
-        // לא נוגעים ב-filterMenuPanel ולא מאפסים את הפילטרים
+        ishiharaGameContainer.SetActive(!isActive);
+
+        // אם עכשיו הצגנו את המשחק – נאפס אותו
+        if (!isActive)
+        {
+            IshiharaGameController game =
+                ishiharaGameContainer.GetComponent<IshiharaGameController>();
+
+            if (game != null)
+            {
+                game.ResetGame();
+            }
+            else
+            {
+                Debug.LogError("IshiharaGameController not found on ishiharaGameContainer");
+            }
+        }
     }
+
 }
