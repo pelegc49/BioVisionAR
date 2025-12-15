@@ -12,6 +12,10 @@ public class AppModeManager : MonoBehaviour
     // כפתור 3: האובייקט שמכיל את משחק האישיהרה (התמונה, ה-Quad וכו')
     public GameObject ishiharaGameContainer; 
 
+    public IshiharaGameManager ishiharaManager;
+
+    public ARContentPlacer arPlacer;
+
     void Start()
     {
         // מצב התחלתי:
@@ -44,27 +48,44 @@ public class AppModeManager : MonoBehaviour
     }
 
     // --- כפתור 3: משחק אישיהרה ---
+    // public void ActivateIshihara()
+    // {
+    //     // Toggle למצב משחק אישיהרה בלבד
+    //     bool isActive = ishiharaGameContainer.activeSelf;
+
+    //     ishiharaGameContainer.SetActive(!isActive);
+
+    //     // אם עכשיו הצגנו את המשחק – נאפס אותו
+    //     if (!isActive)
+    //     {
+    //         IshiharaGameController game =
+    //             ishiharaGameContainer.GetComponent<IshiharaGameController>();
+
+    //         if (game != null)
+    //         {
+    //             game.ResetGame();
+    //         }
+    //         else
+    //         {
+    //             Debug.LogError("IshiharaGameController not found on ishiharaGameContainer");
+    //         }
+    //     }
+    // }
+
     public void ActivateIshihara()
     {
-        // Toggle למצב משחק אישיהרה בלבד
-        bool isActive = ishiharaGameContainer.activeSelf;
+        // מכבים את המודלים האחרים
+        eyeModelContainer.SetActive(false);
 
-        ishiharaGameContainer.SetActive(!isActive);
+        // שינוי חשוב: אנחנו *לא* מפעילים את ishiharaGameContainer ישירות כאן!
+        // ה-Placer יעשה את זה כשהוא ימצא קיר.
+        ishiharaGameContainer.SetActive(false); 
 
-        // אם עכשיו הצגנו את המשחק – נאפס אותו
-        if (!isActive)
+        // מפעילים את תהליך המיקום
+        if (arPlacer != null)
         {
-            IshiharaGameController game =
-                ishiharaGameContainer.GetComponent<IshiharaGameController>();
-
-            if (game != null)
-            {
-                game.ResetGame();
-            }
-            else
-            {
-                Debug.LogError("IshiharaGameController not found on ishiharaGameContainer");
-            }
+            arPlacer.enabled = true; // מוודאים שהסקריפט דולק
+            arPlacer.StartPlacementProcess();
         }
     }
 
