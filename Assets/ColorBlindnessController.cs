@@ -37,40 +37,38 @@ public class ColorBlindnessController : MonoBehaviour
     // הנוסחה: לוקחים את הבהירות (Luminance) ודוחפים אותה רק לערוץ אחד
     
     // אפור (Rod Monochromacy)
-// אפור (Rod Monochromacy) - נשאר תקין כי כל הערוצים מקבלים אותו דבר
+    // אפור (Rod Monochromacy) - נשאר תקין כי כל הערוצים מקבלים אותו דבר
     private readonly Matrix4x4 monoGray = new Matrix4x4(
-        new Vector4(0.299f, 0.299f, 0.299f, 0.0f), // Column 0 (Input Red contributes to R, G, B)
-        new Vector4(0.587f, 0.587f, 0.587f, 0.0f), // Column 1 (Input Green contributes to R, G, B)
-        new Vector4(0.114f, 0.114f, 0.114f, 0.0f), // Column 2 (Input Blue contributes to R, G, B)
+        new Vector4(0.1f, 0.1f, 0.1f, 0.0f), // Column 0 (Input Red contributes to R, G, B)
+        new Vector4(0.1f, 0.1f, 0.1f, 0.0f), // Column 1 (Input Green contributes to R, G, B)
+        new Vector4(0.1f, 0.1f, 0.1f, 0.0f), // Column 2 (Input Blue contributes to R, G, B)
         new Vector4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-
     // רק אדום (Red Cone Monochromacy)
     // אנחנו רוצים שכל המידע ילך רק ל-Output Red (שורה ראשונה במטריצה - X של הווקטורים)
     private readonly Matrix4x4 monoRed = new Matrix4x4(
-        new Vector4(0.299f, 0.0f, 0.0f, 0.0f), // Column 0: Input Red only fills Output Red
-        new Vector4(0.587f, 0.0f, 0.0f, 0.0f), // Column 1: Input Green only fills Output Red
-        new Vector4(0.114f, 0.0f, 0.0f, 0.0f), // Column 2: Input Blue only fills Output Red
+        new Vector4(0.98f, 0.01f, 0.01f, 0.0f), // Column 0 (Input Red contributes to R, G, B)
+        new Vector4(0.01f, 0.0f, 0.0f, 0.0f), // Column 1 (Input Green contributes to R, G, B)
+        new Vector4(0.01f, 0.0f, 0.0f, 0.0f), // Column 2 (Input Blue contributes to R, G, B)
         new Vector4(0.0f, 0.0f, 0.0f, 1.0f)
     );
 
     // רק ירוק (Green Cone Monochromacy)
     // כל המידע הולך רק ל-Output Green (שורה שנייה במטריצה - Y של הווקטורים)
     private readonly Matrix4x4 monoGreen = new Matrix4x4(
-        new Vector4(0.0f, 0.299f, 0.0f, 0.0f), 
-        new Vector4(0.0f, 0.587f, 0.0f, 0.0f), 
-        new Vector4(0.0f, 0.114f, 0.0f, 0.0f), 
+        new Vector4(0.0f, 0.01f, 0.0f, 0.0f),
+        new Vector4(0.01f, 0.98f, 0.01f, 0.0f),
+        new Vector4(0.0f, 0.01f, 0.0f, 0.0f),
         new Vector4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-
     // רק כחול (Blue Cone Monochromacy)
     // כל המידע הולך רק ל-Output Blue (שורה שלישית במטריצה - Z של הווקטורים)
     private readonly Matrix4x4 monoBlue = new Matrix4x4(
-        new Vector4(0.0f, 0.0f, 0.299f, 0.0f), 
-        new Vector4(0.0f, 0.0f, 0.587f, 0.0f), 
-        new Vector4(0.0f, 0.0f, 0.114f, 0.0f), 
-        new Vector4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
+       new Vector4(0.0f, 0.0f, 0.01f, 0.0f), // Column 0 (Input Red contributes to R, G, B)
+       new Vector4(0.0f, 0.0f, 0.01f, 0.0f), // Column 1 (Input Green contributes to R, G, B)
+       new Vector4(0.01f,0.01f, 0.98f, 0.0f), // Column 2 (Input Blue contributes to R, G, B)
+       new Vector4(0.0f, 0.0f, 0.0f, 1.0f)
+   );
 
     public enum ColorBlindMode
     {
