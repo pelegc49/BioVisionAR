@@ -1,28 +1,34 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // חובה בשביל הטקסטים החדשים
-using System.Collections.Generic; // בשביל רשימות
+using TMPro;
+using System.Collections.Generic;
 
 public class IshiharaGameManager : MonoBehaviour
 {
     [System.Serializable]
     public struct QuestionData
     {
-        public Sprite image;      // התמונה של האישיהרה
-        public int correctAnswer; // המספר שמוחבא בתמונה
+        public Sprite image;
+        public int correctAnswer;
     }
 
-    [Header("UI References")]
-    public Image questionDisplay;          // הרכיב שמציג את התמונה
-    public Button[] answerButtons;         // מערך של 4 הכפתורים
-    public GameObject gamePanel;           // הפאנל הראשי של המשחק
-    public GameObject resultsPanel;        // פאנל הסיום
-    public TextMeshProUGUI resultsText;    // הטקסט של הסיכום
+    [Header("Main Panels")]
+    public GameObject questionsContainer; // (לשעבר Game Panel) הפאנל עם השאלות
+    public GameObject resultsPanel;       // הפאנל עם התוצאות
+
+    [Header("Game Elements")]
+    public Image questionDisplay;
+    public Button[] answerButtons;
+    public Slider progressBar;           // --- חדש: סרגל ההתקדמות ---
+
+    [Header("Results Elements")]
+    public TextMeshProUGUI resultsText;
+    public Button playAgainButton;       // --- חדש: כפתור שחק שוב ---
 
     [Header("Data")]
-    public QuestionData[] questions;       // כאן נגרור את התמונות והתשובות ב-Inspector
+    public QuestionData[] questions;
 
-    // --- משתנים לניהול המשחק ---
+    // --- Internal State ---
     private int currentQuestionIndex = 0;
     private int correctAnswersCount = 0;
     private float startTime;
@@ -30,10 +36,14 @@ public class IshiharaGameManager : MonoBehaviour
 
     void Start()
     {
-        // אנחנו נפעיל את המשחק ידנית דרך ה-AppManager, אז לא צריך כלום ב-Start
+        // אם הכפתור מוגדר, נקשר אותו לפונקציה RestartGame
+        if (playAgainButton != null)
+        {
+            playAgainButton.onClick.AddListener(RestartGame);
+        }
     }
 
-    // פונקציה שנקראת כשלוחצים על כפתור התחלת המשחק (Mode3)
+    // פונקציה שנקראת מה-AR Placer או מהכפתור Restart
     public void StartGame()
     {
         currentQuestionIndex = 0;
@@ -41,57 +51,64 @@ public class IshiharaGameManager : MonoBehaviour
         startTime = Time.time;
         isGameActive = true;
 
-        gamePanel.SetActive(true);
+        // איפוס ה-UI
+        questionsContainer.SetActive(true);
         resultsPanel.SetActive(false);
+
+        // --- איפוס Progress Bar ---
+        if (progressBar != null)
+        {
+            progressBar.maxValue = questions.Length;
+            progressBar.value = 0;
+        }
 
         LoadQuestion();
     }
 
+    public void RestartGame()
+    {
+        // פשוט קוראים ל-StartGame מחדש. 
+        // בגלל שהקנבס כבר ממוקם ב-World Space, לא צריך את ה-AR Placer שוב.
+        StartGame();
+    }
+
     void LoadQuestion()
     {
+        // עדכון הסרגל לפני בדיקת הסיום
+        if (progressBar != null)
+        {
+            progressBar.value = currentQuestionIndex;
+        }
+
         if (currentQuestionIndex >= questions.Length)
         {
             EndGame();
             return;
         }
 
-        // 1. טעינת התמונה
         QuestionData currentQ = questions[currentQuestionIndex];
         questionDisplay.sprite = currentQ.image;
 
-        // 2. הכנת התשובות (1 נכונה + 3 שגויות)
+        // הכנת התשובות
         List<int> options = new List<int>();
         options.Add(currentQ.correctAnswer);
 
-        // יצירת 3 מסיחים אקראיים (שלא שווים לתשובה הנכונה וללא כפילויות)
         while (options.Count < 4)
         {
-            // טווח מספרים הגיוני (למשל בין 1 ל-99)
-            int randomNum = Random.Range(1, 100); 
-            if (!options.Contains(randomNum))
-            {
-                options.Add(randomNum);
-            }
+            int randomNum = Random.Range(1, 100);
+            if (!options.Contains(randomNum)) options.Add(randomNum);
         }
 
-        // 3. ערבוב התשובות (Shuffle) כדי שהנכונה לא תהיה תמיד הראשונה
         ShuffleList(options);
 
-        // 4. הצבת המספרים על הכפתורים
         for (int i = 0; i < answerButtons.Length; i++)
         {
             int number = options[i];
-            
-            // שינוי הטקסט של הכפתור
             TextMeshProUGUI btnText = answerButtons[i].GetComponentInChildren<TextMeshProUGUI>();
             btnText.text = number.ToString();
 
-            // ניקוי מאזינים קודמים (חשוב!)
             answerButtons[i].onClick.RemoveAllListeners();
-
-            // הוספת מאזין לחיצה חדש
-            // אנחנו משתמשים במשתנה זמני כדי שה-Lambda תתפוס את הערך הנכון
-            int selectedNum = number; 
+            int selectedNum = number;
             answerButtons[i].onClick.AddListener(() => OnAnswerSelected(selectedNum));
         }
     }
@@ -100,19 +117,12 @@ public class IshiharaGameManager : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // בדיקה אם צדק
         int correctNum = questions[currentQuestionIndex].correctAnswer;
         if (selectedNumber == correctNum)
         {
             correctAnswersCount++;
-            Debug.Log("Correct!");
-        }
-        else
-        {
-            Debug.Log("Wrong! Chose " + selectedNumber + ", was " + correctNum);
         }
 
-        // מעבר לשאלה הבאה
         currentQuestionIndex++;
         LoadQuestion();
     }
@@ -120,22 +130,22 @@ public class IshiharaGameManager : MonoBehaviour
     void EndGame()
     {
         isGameActive = false;
-        float totalTime = Time.time - startTime;
+        
+        // עדכון סופי של הסרגל שיהיה מלא
+        if (progressBar != null) progressBar.value = questions.Length;
 
-        // עיצוב זמן (למשל: 12.5 שניות)
+        float totalTime = Time.time - startTime;
         string timeStr = totalTime.ToString("F1");
 
-        // הצגת סיכום
-        gamePanel.SetActive(false); // מסתירים את השאלות
-        resultsPanel.SetActive(true); // מציגים את התוצאות
+        questionsContainer.SetActive(false); // מכבים את השאלות
+        resultsPanel.SetActive(true);        // מדליקים את התוצאות
 
         resultsText.text = "<b>Game Over!</b>\n\n" +
                            $"Correct Answers: {correctAnswersCount} / {questions.Length}\n" +
-                           $"Total Time: {timeStr}s\n\n" +
+                           $"Time: {timeStr}s\n\n" +
                            ((correctAnswersCount >= 8) ? "Great Vision!" : "Consult a doctor :)");
     }
 
-    // פונקציית עזר לערבוב רשימה (Fisher-Yates Shuffle)
     void ShuffleList<T>(List<T> list)
     {
         for (int i = 0; i < list.Count; i++)
