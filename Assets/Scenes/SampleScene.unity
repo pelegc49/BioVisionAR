@@ -3663,7 +3663,7 @@ MonoBehaviour:
   progressBar: {fileID: 964560552}
   resultsText: {fileID: 1669029245}
   playAgainButton: {fileID: 1595090420}
-  questions:
+  allQuestions:
   - image: {fileID: 21300000, guid: e4298bf625786c145986bf33b03ba858, type: 3}
     correctAnswer: 74
   - image: {fileID: 21300000, guid: 0aa24bbf800d80a4dbf660641acc83c5, type: 3}

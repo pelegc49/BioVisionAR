@@ -13,22 +13,23 @@ public class IshiharaGameManager : MonoBehaviour
     }
 
     [Header("Main Panels")]
-    public GameObject questionsContainer; // (לשעבר Game Panel) הפאנל עם השאלות
-    public GameObject resultsPanel;       // הפאנל עם התוצאות
+    public GameObject questionsContainer; 
+    public GameObject resultsPanel;       
 
     [Header("Game Elements")]
     public Image questionDisplay;
     public Button[] answerButtons;
-    public Slider progressBar;           // --- חדש: סרגל ההתקדמות ---
+    public Slider progressBar;           
 
     [Header("Results Elements")]
     public TextMeshProUGUI resultsText;
-    public Button playAgainButton;       // --- חדש: כפתור שחק שוב ---
+    public Button playAgainButton;       
 
     [Header("Data")]
-    public QuestionData[] questions;
+    public QuestionData[] allQuestions; // שיניתי את השם ל-allQuestions כדי למנוע בלבול
 
     // --- Internal State ---
+    private List<QuestionData> shuffledQuestions; // הרשימה המעורבבת למשחק הנוכחי
     private int currentQuestionIndex = 0;
     private int correctAnswersCount = 0;
     private float startTime;
@@ -36,14 +37,12 @@ public class IshiharaGameManager : MonoBehaviour
 
     void Start()
     {
-        // אם הכפתור מוגדר, נקשר אותו לפונקציה RestartGame
         if (playAgainButton != null)
         {
             playAgainButton.onClick.AddListener(RestartGame);
         }
     }
 
-    // פונקציה שנקראת מה-AR Placer או מהכפתור Restart
     public void StartGame()
     {
         currentQuestionIndex = 0;
@@ -51,14 +50,20 @@ public class IshiharaGameManager : MonoBehaviour
         startTime = Time.time;
         isGameActive = true;
 
-        // איפוס ה-UI
+        // --- ערבוב השאלות (החלק החדש) ---
+        // 1. יצירת רשימה חדשה מהמערך המקורי
+        shuffledQuestions = new List<QuestionData>(allQuestions);
+        
+        // 2. ערבוב הרשימה
+        ShuffleList(shuffledQuestions);
+
+        // --- איפוס ה-UI ---
         questionsContainer.SetActive(true);
         resultsPanel.SetActive(false);
 
-        // --- איפוס Progress Bar ---
         if (progressBar != null)
         {
-            progressBar.maxValue = questions.Length;
+            progressBar.maxValue = shuffledQuestions.Count;
             progressBar.value = 0;
         }
 
@@ -67,38 +72,40 @@ public class IshiharaGameManager : MonoBehaviour
 
     public void RestartGame()
     {
-        // פשוט קוראים ל-StartGame מחדש. 
-        // בגלל שהקנבס כבר ממוקם ב-World Space, לא צריך את ה-AR Placer שוב.
         StartGame();
     }
 
     void LoadQuestion()
     {
-        // עדכון הסרגל לפני בדיקת הסיום
         if (progressBar != null)
         {
             progressBar.value = currentQuestionIndex;
         }
 
-        if (currentQuestionIndex >= questions.Length)
+        // בדיקה אם סיימנו את כל השאלות ברשימה המעורבבת
+        if (currentQuestionIndex >= shuffledQuestions.Count)
         {
             EndGame();
             return;
         }
 
-        QuestionData currentQ = questions[currentQuestionIndex];
+        // --- שימוש בשאלה מהרשימה המעורבבת ---
+        QuestionData currentQ = shuffledQuestions[currentQuestionIndex];
+        
         questionDisplay.sprite = currentQ.image;
 
         // הכנת התשובות
         List<int> options = new List<int>();
         options.Add(currentQ.correctAnswer);
 
+        // יצירת מסיחים
         while (options.Count < 4)
         {
             int randomNum = Random.Range(1, 100);
             if (!options.Contains(randomNum)) options.Add(randomNum);
         }
 
+        // ערבוב מיקום התשובות על הכפתורים
         ShuffleList(options);
 
         for (int i = 0; i < answerButtons.Length; i++)
@@ -117,7 +124,9 @@ public class IshiharaGameManager : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        int correctNum = questions[currentQuestionIndex].correctAnswer;
+        // בדיקה מול השאלה הנוכחית ברשימה המעורבבת
+        int correctNum = shuffledQuestions[currentQuestionIndex].correctAnswer;
+        
         if (selectedNumber == correctNum)
         {
             correctAnswersCount++;
@@ -131,21 +140,21 @@ public class IshiharaGameManager : MonoBehaviour
     {
         isGameActive = false;
         
-        // עדכון סופי של הסרגל שיהיה מלא
-        if (progressBar != null) progressBar.value = questions.Length;
+        if (progressBar != null) progressBar.value = shuffledQuestions.Count;
 
         float totalTime = Time.time - startTime;
         string timeStr = totalTime.ToString("F1");
 
-        questionsContainer.SetActive(false); // מכבים את השאלות
-        resultsPanel.SetActive(true);        // מדליקים את התוצאות
+        questionsContainer.SetActive(false); 
+        resultsPanel.SetActive(true);        
 
         resultsText.text = "<b>Game Over!</b>\n\n" +
-                           $"Correct Answers: {correctAnswersCount} / {questions.Length}\n" +
+                           $"Correct Answers: {correctAnswersCount} / {shuffledQuestions.Count}\n" +
                            $"Time: {timeStr}s\n\n" +
                            ((correctAnswersCount >= 8) ? "Great Vision!" : "Consult a doctor :)");
     }
 
+    // פונקציית הערבוב הגנרית (עובדת גם על שאלות וגם על תשובות)
     void ShuffleList<T>(List<T> list)
     {
         for (int i = 0; i < list.Count; i++)
