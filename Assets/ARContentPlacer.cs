@@ -10,24 +10,36 @@ public class ARContentPlacer : MonoBehaviour
     public ARRaycastManager raycastManager;
     public ARPlaneManager planeManager;
 
-    [Header("Content")]
-    public GameObject objectToPlace;
+    [Header("UI")]
     public GameObject instructionText;
 
+    // האובייקט הנוכחי שאנחנו מנסים למקם (משתנה דינמית)
+    private GameObject currentObjectToPlace;
+    
     private List<ARRaycastHit> hits = new List<ARRaycastHit>();
     private bool isPlaced = false;
 
     void Start()
     {
-        if (objectToPlace != null) objectToPlace.SetActive(false);
         if (instructionText != null) instructionText.SetActive(false);
     }
 
-    public void StartPlacementProcess()
+    // --- השינוי העיקרי: הפונקציה מקבלת את האובייקט ---
+    public void StartPlacementProcess(GameObject targetObject)
     {
-        Debug.Log("--- AR Placement Process Started ---"); // לוג התחלה
+        Debug.Log("--- AR Placement Process Started ---");
+        
+        // 1. שומרים איזה אובייקט אנחנו רוצים למקם הפעם
+        currentObjectToPlace = targetObject;
+        
+        // 2. מאפסים משתנים
         isPlaced = false;
-        if(objectToPlace != null) objectToPlace.SetActive(false);
+        
+        // 3. מכבים את האובייקט (כדי שלא ירחף לפני המיקום)
+        if(currentObjectToPlace != null) 
+            currentObjectToPlace.SetActive(false);
+        
+        // 4. מציגים הוראות ומפעילים סריקה
         if (instructionText != null) instructionText.SetActive(true);
         
         planeManager.enabled = true;
@@ -36,86 +48,47 @@ public class ARContentPlacer : MonoBehaviour
 
     void Update()
     {
-        if (isPlaced) return;
+        if (isPlaced || currentObjectToPlace == null) return;
 
-        // בדיקה משולבת: גם מגע (טלפון) וגם עכבר (מחשב/Editor)
         if (Input.touchCount > 0 || Input.GetMouseButtonDown(0))
         {
             Vector2 touchPosition;
+            if (Input.touchCount > 0) touchPosition = Input.GetTouch(0).position;
+            else touchPosition = Input.mousePosition;
 
-            // בדיקה האם זה מגע או עכבר
-            if (Input.touchCount > 0)
-                touchPosition = Input.GetTouch(0).position;
-            else
-                touchPosition = Input.mousePosition;
-
-            // לוג לוודא שיוניטי בכלל מזהה לחיצה
-            // אם אתה לא רואה את השורה הזו ב-Console כשאתה לוחץ, הבעיה היא ב-Project Settings (שלב 1)
-            Debug.Log("Input Detected at: " + touchPosition);
-
-            // טיפול בלחיצה רק בהתחלה (Began / MouseDown)
             bool isTouchBegan = (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began);
             bool isMouseClick = (Input.touchCount == 0 && Input.GetMouseButtonDown(0));
 
             if (isTouchBegan || isMouseClick)
             {
-                if (IsPointerOverUI(touchPosition))
-                {
-                    Debug.Log("Blocked by UI");
-                    return;
-                }
+                if (IsPointerOverUI(touchPosition)) return;
 
                 if (raycastManager.Raycast(touchPosition, hits, TrackableType.PlaneWithinPolygon))
                 {
-                    Debug.Log("HIT WALL! Placing object...");
                     PlaceObject(hits[0].pose);
-                }
-                else
-                {
-                    Debug.Log("Raycast failed - No plane hit at this position.");
                 }
             }
         }
     }
 
-    // void PlaceObject(Pose hitPose)
-    // {
-    //     isPlaced = true;
-    //     if (instructionText != null) instructionText.SetActive(false);
-
-    //     objectToPlace.SetActive(true);
-    //     objectToPlace.transform.position = hitPose.position;
-    //     objectToPlace.transform.rotation = hitPose.rotation;
-
-    //     SetPlanesActive(false);
-    //     planeManager.enabled = false;
-
-    //     var gameManager = objectToPlace.GetComponentInChildren<IshiharaGameManager>();
-    //     if (gameManager != null)
-    //     {
-    //         gameManager.StartGame();
-    //     }
-    // }
-
-void PlaceObject(Pose hitPose)
+    void PlaceObject(Pose hitPose)
     {
         isPlaced = true;
         if (instructionText != null) instructionText.SetActive(false);
 
-        objectToPlace.SetActive(true);
-        objectToPlace.transform.position = hitPose.position;
+        // מפעילים וממקמים את האובייקט שנבחר
+        currentObjectToPlace.SetActive(true);
+        currentObjectToPlace.transform.position = hitPose.position;
 
-        // --- התיקון הגדול ---
-        // במקום להשתמש ב-hitPose.rotation, אנחנו משתמשים ב-hitPose.up
-        // ב-AR Planes, ה-Up הוא הנורמל (החץ שיוצא מהקיר החוצה)
-        // הפקודה הזו אומרת: "כוון את ציר ה-Z (קדימה) שיהיה מקביל לנורמל של הקיר, ושמור על ציר ה-Y כלפי מעלה העולם"
-        objectToPlace.transform.rotation = Quaternion.LookRotation(hitPose.up, Vector3.up);
+        // רוטציה - מתאים לקירות (Canvas) וגם למודלים
+        currentObjectToPlace.transform.rotation = Quaternion.LookRotation(hitPose.up, Vector3.up);
 
-        // הסתרת משטחים והתחלת משחק
         SetPlanesActive(false);
         planeManager.enabled = false;
 
-        var gameManager = objectToPlace.GetComponentInChildren<IshiharaGameManager>();
+        // בדיקה ספציפית: אם האובייקט הוא המשחק, נפעיל אותו
+        // (אם זה המודל של העין, הפקודה הזו פשוט לא תעשה כלום וזה בסדר גמור)
+        var gameManager = currentObjectToPlace.GetComponentInChildren<IshiharaGameManager>();
         if (gameManager != null)
         {
             gameManager.StartGame();
