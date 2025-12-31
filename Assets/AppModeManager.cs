@@ -4,50 +4,50 @@ public class AppModeManager : MonoBehaviour
 {
     [Header("UI Panels & Containers")]
     public GameObject filterMenuPanel; 
-    public GameObject eyeModelContainer; // המודל של העין
-    public GameObject ishiharaGameContainer; // המשחק
+    public GameObject eyeModelContainer; // The eye model
+    public GameObject ishiharaGameContainer; // The game
 
     [Header("AR Controller")]
-    public ARContentPlacer arPlacer; // הוספנו הפניה לסקריפט המיקום
+    public ARContentPlacer arPlacer; // Reference to the placement script
 
-    // כפתור 1
+    // Button 1
     public void ToggleFilterMenu()
     {
         bool isActive = filterMenuPanel.activeSelf;
         filterMenuPanel.SetActive(!isActive);
     }
 
-    // כפתור 2: מודל העין
+    // Button 2: Eye Model
     public void ActivateEyeModel()
     {
-        // 1. מכבים את המודלים האחרים
+        // 1. Turn off other models
         filterMenuPanel.SetActive(false);
         ishiharaGameContainer.SetActive(false); 
         
-        // 2. מכבים זמנית את העין (ה-Placer ידליק אותה כשנמקם)
+        // 2. Temporarily turn off the eye (the Placer will activate it when placed)
         eyeModelContainer.SetActive(false);
 
-        // 3. מתחילים תהליך מיקום עבור העין
+        // 3. Start placement process for the eye
         if (arPlacer != null)
         {
             arPlacer.enabled = true;
-            // שולחים את המודל של העין למיקום!
+            // Send the eye model for placement!
             arPlacer.StartPlacementProcess(eyeModelContainer); 
         }
     }
 
-    // כפתור 3: משחק אישיהרה
+    // Button 3: Ishihara Game
     public void ActivateIshihara()
     {
         filterMenuPanel.SetActive(false);
         eyeModelContainer.SetActive(false);
         ishiharaGameContainer.SetActive(false);
 
-        // מתחילים תהליך מיקום עבור המשחק
+        // Start placement process for the game
         if (arPlacer != null)
         {
             arPlacer.enabled = true;
-            // שולחים את המשחק למיקום!
+            // Send the game for placement!
             arPlacer.StartPlacementProcess(ishiharaGameContainer);
         }
     }
