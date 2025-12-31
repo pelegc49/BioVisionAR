@@ -69,28 +69,28 @@ public class InfoPanelController : MonoBehaviour
         switch (controller.currentMode)
         {
             case ColorBlindnessController.ColorBlindMode.Normal:
-                title = "ראייה תקינה (Normal Vision)";
-                description = "מצב זה מדמה ראייה אנושית סטנדרטית, הכוללת רגישות מלאה לשלושת צבעי היסוד: אדום, ירוק וכחול (Trichromacy).";
+                title = "ראייה תקינה";
+                description = "מצב זה מדמה ראייה אנושית סטנדרטית, הכוללת רגישות מלאה לשלושת צבעי היסוד: אדום, ירוק וכחול.";
                 break;
 
             case ColorBlindnessController.ColorBlindMode.Protanomaly:
-                title = "פרוטנומליה (Protanomaly)";
+                title = "פרוטנומליה";
                 description = "לקות בראיית הצבע האדום. המדוכים האדומים קיימים אך רגישותם פחותה. אדום, כתום וצהוב נראים פחות בהירים ונוטים לגוון ירקרק. זהו סוג נפוץ יחסית של עיוורון צבעים.";
                 break;
 
             case ColorBlindnessController.ColorBlindMode.Deuteranomaly:
-                title = "דאוטרנומליה (Deuteranomaly)";
-                description = "הסוג הנפוץ ביותר של עיוורון צבעים (כ-5% מהגברים). המדוכים הירוקים קיימים אך תפקודם לקוי. קיים קושי להבדיל בין גוונים של ירוק ואדום, והעולם נראה מעט יותר 'דהוי'.";
+                title = "דאוטרנומליה";
+                description = "הסוג הנפוץ ביותר של עיוורון צבעים, כ-5% מהגברים. המדוכים הירוקים קיימים אך תפקודם לקוי. קיים קושי להבדיל בין גוונים של ירוק ואדום, והעולם נראה מעט יותר 'דהוי'.";
                 break;
 
             case ColorBlindnessController.ColorBlindMode.Tritanomaly:
-                title = "טריטנומליה (Tritanomaly)";
+                title = "טריטנומליה";
                 description = "מצב נדיר המשפיע על ראיית הצבע הכחול. קיים קושי להבדיל בין כחול לירוק ובין צהוב לאדום. הכחול עשוי להיראות ירקרק והצהוב עשוי להיראות ורדרד.";
                 break;
 
             case ColorBlindnessController.ColorBlindMode.Monochromacy:
-                title = "מונוכרומטיות (Monochromacy)";
-                description = "עיוורון צבעים מוחלט. במצב זה המדוכים (Cones) אינם מתפקדים כלל, והראייה מסתמכת רק על הקנים (Rods). העולם נראה בגווני אפור (שחור-לבן), בדומה לראיית לילה.";
+                title = "מונוכרומטיות";
+                description = "עיוורון צבעים מוחלט. במצב זה המדוכים אינם מתפקדים כלל, והראייה מסתמכת רק על הקנים. העולם נראה בגווני אפור, שחור-לבן, בדומה לראיית לילה.";
                 break;
                 
             // הוספתי גם את המצבים האחרים למקרה שתשתמש בהם בעתיד
