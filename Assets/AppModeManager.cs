@@ -9,6 +9,7 @@ public class AppModeManager : MonoBehaviour
 
     [Header("AR Controller")]
     public ARContentPlacer arPlacer; // Reference to the placement script
+    public ARImageTrackerControl imageTracker;
 
     // Button 1
     public void ToggleFilterMenu()
@@ -20,19 +21,19 @@ public class AppModeManager : MonoBehaviour
     // Button 2: Eye Model
     public void ActivateEyeModel()
     {
-        // 1. Turn off other models
+        // ניקוי מסך
         filterMenuPanel.SetActive(false);
         ishiharaGameContainer.SetActive(false); 
-        
-        // 2. Temporarily turn off the eye (the Placer will activate it when placed)
         eyeModelContainer.SetActive(false);
 
-        // 3. Start placement process for the eye
-        if (arPlacer != null)
+        // כיבוי ה-Placer הישן (של הקירות)
+        if (arPlacer != null) arPlacer.enabled = false;
+
+        // הפעלת ה-Image Tracker החדש
+        if (imageTracker != null)
         {
-            arPlacer.enabled = true;
-            // Send the eye model for placement!
-            arPlacer.StartPlacementProcess(eyeModelContainer); 
+            imageTracker.enabled = true;
+            imageTracker.StartScanning(eyeModelContainer);
         }
     }
 
@@ -48,6 +49,15 @@ public class AppModeManager : MonoBehaviour
         {
             arPlacer.enabled = true;
             // Send the game for placement!
+            arPlacer.StartPlacementProcess(ishiharaGameContainer);
+        }
+        
+        if (imageTracker != null) imageTracker.enabled = false;
+
+        // הפעלת ה-Placer הרגיל
+        if (arPlacer != null)
+        {
+            arPlacer.enabled = true;
             arPlacer.StartPlacementProcess(ishiharaGameContainer);
         }
     }

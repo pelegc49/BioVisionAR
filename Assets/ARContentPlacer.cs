@@ -111,4 +111,20 @@ public class ARContentPlacer : MonoBehaviour
             plane.gameObject.SetActive(isActive);
         }
     }
+
+    void OnDisable()
+    {
+        // ברגע שהסקריפט נכבה (כשעוברים למוד עין), נכבה את הטקסט
+        if (instructionText != null) 
+        {
+            instructionText.SetActive(false);
+        }
+
+        // גם נחביא את המשטחים הצהובים אם נשארו
+        if (planeManager != null)
+        {
+            planeManager.enabled = false;
+            SetPlanesActive(false);
+        }
+    }
 }
