@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System.Linq;
 
 public class IshiharaGameManager : MonoBehaviour
 {
@@ -148,10 +149,10 @@ public class IshiharaGameManager : MonoBehaviour
         questionsContainer.SetActive(false); 
         resultsPanel.SetActive(true);        
 
-        resultsText.text = "<b>Game Over!</b>\n\n" +
-                           $"Correct Answers: {correctAnswersCount} / {shuffledQuestions.Count}\n" +
-                           $"Time: {timeStr}s\n\n" +
-                           ((correctAnswersCount >= 8) ? "Great Vision!" : "Consult a doctor :)");
+        resultsText.text = "<b>המשחק נגמר!</b>\n\n" +
+                           $"תשובות נכונות: {new string(correctAnswersCount.ToString().Reverse().ToArray())} / {new string(shuffledQuestions.Count.ToString().Reverse().ToArray())}\n" +
+                           $"זמן: {timeStr} שניות\n\n" +
+                           ((correctAnswersCount >= 8) ? "ראייה מעולה!" : "יש להתיעץ עם רופא :)");
     }
 
     // פונקציית הערבוב הגנרית (עובדת גם על שאלות וגם על תשובות)
