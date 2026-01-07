@@ -152,7 +152,7 @@ public class IshiharaGameManager : MonoBehaviour
         resultsText.text = "<b>המשחק נגמר!</b>\n\n" +
                            $"תשובות נכונות: {new string(correctAnswersCount.ToString().Reverse().ToArray())} / {new string(shuffledQuestions.Count.ToString().Reverse().ToArray())}\n" +
                            $"זמן: {timeStr} שניות\n\n" +
-                           ((correctAnswersCount >= 8) ? "ראייה מעולה!" : "יש להתיעץ עם רופא :)");
+                           ((correctAnswersCount >= 8) ? "ראייה מעולה!" : "נסו שוב!");
     }
 
     // פונקציית הערבוב הגנרית (עובדת גם על שאלות וגם על תשובות)

@@ -1,7 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.XR.ARFoundation; // חובה בשביל ARSession
+using System.Collections; // חובה בשביל Coroutines
 
 public class AppModeManager : MonoBehaviour
 {
+    [Header("General AR References")]
+    public ARSession arSession; // <--- הוסף את המשתנה הזה
     [Header("UI Panels & Containers")]
     public GameObject filterMenuPanel; 
     public GameObject eyeModelContainer; // The eye model
@@ -60,5 +65,27 @@ public class AppModeManager : MonoBehaviour
             arPlacer.enabled = true;
             arPlacer.StartPlacementProcess(ishiharaGameContainer);
         }
+    }
+
+    public void BackToMainMenu()
+    {
+        StartCoroutine(SwitchSceneRoutine());
+    }
+
+    // תהליך מסודר למעבר סצנה
+    IEnumerator SwitchSceneRoutine()
+    {
+        // 1. קודם כל מכבים את מוח ה-AR
+        if (arSession != null)
+        {
+            arSession.Reset(); // מאפס את ה-AR
+            arSession.enabled = false; // מכבה אותו לגמרי
+        }
+
+        // 2. מחכים פריים אחד כדי לוודא שיוניטי עיבדה את הכיבוי
+        yield return null;
+
+        // 3. עכשיו בטוח לעבור סצנה
+        SceneManager.LoadScene("IntroScene");
     }
 }
