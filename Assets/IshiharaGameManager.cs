@@ -151,7 +151,7 @@ public class IshiharaGameManager : MonoBehaviour
 
         resultsText.text = "<b>המשחק נגמר!</b>\n\n" +
                            $"תשובות נכונות: {new string(correctAnswersCount.ToString().Reverse().ToArray())} / {new string(shuffledQuestions.Count.ToString().Reverse().ToArray())}\n" +
-                           $"זמן: {timeStr} שניות\n\n" +
+                           $"זמן: {new string(timeStr.ToString().Reverse().ToArray())} שניות\n\n" +
                            ((correctAnswersCount >= 8) ? "ראייה מעולה!" : "נסו שוב!");
     }
 
